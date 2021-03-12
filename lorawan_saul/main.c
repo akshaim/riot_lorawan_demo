@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2020 Freie Universität Berlin
+ *               2020 HAW Hamburg
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -15,6 +16,7 @@
  * @brief       GNRC LoRaWAN example application for RIOT
  *
  * @author      Akshai M   <akshai.m@fu-berlin.de>
+ *              José Alamos <jose.alamos@haw-hamburg.de>
  *
  * @}
  */
@@ -42,6 +44,10 @@
 
 #include "net/loramac.h"
 
+#include "cayenne_lpp.h"
+
+static cayenne_lpp_t lpp;
+
 #define DELAY           (10 * US_PER_SEC)
 #define LORAWAN_QUEUE_SIZE (4U)
 
@@ -52,13 +58,13 @@ int _send(void)
     gnrc_pktsnip_t *pkt;
 
     msg_t msg;
-    char temp_s[]={"250"};
-    /* TODO: Replace by cayenne sensor */
 
-    if (!(pkt = gnrc_pktbuf_add(NULL, temp_s, strlen(temp_s), GNRC_NETTYPE_UNDEF))) {
+    if (!(pkt = gnrc_pktbuf_add(NULL, lpp.buffer, lpp.cursor, GNRC_NETTYPE_UNDEF))) {
         puts("No space in packet buffer");
         return 1;
     }
+
+    cayenne_lpp_reset(&lpp);
 
     /* register for returned packet status */
     if (gnrc_neterr_reg(pkt) != 0) {
@@ -97,18 +103,14 @@ static int _sense(void)
     /* TODO: Use saul_reg_find_xxx functions */
     while (dev) {
         int dim = saul_reg_read(dev, &res);
-        /* TODO: Add the temperature and humidity sensors */
-        if (strcmp(saul_class_to_str(dev->driver->type), "ACT_SWITCH") &&
-            strcmp(saul_class_to_str(dev->driver->type), "SENSE_BTN"))
+        if (!strcmp(saul_class_to_str(dev->driver->type), "SENSE_TEMP"))  /*temporary filter */
             {   
-                printf("\nDev: %s\tType: %s\n", dev->name,
-                        saul_class_to_str(dev->driver->type));
                 phydat_dump(&res, dim); 
-                printf("Dataa : %d, scale %d\n", res.val[0], res.scale);
-                //temp = res.val[0];
-                /* TODO: Load cayenne buffer */
+                cayenne_lpp_add_temperature(&lpp, 3, res.val[0]/10);
             }
-                dev = dev->next;
+            dev = dev->next;
+
+            //to do add additional sensors
         }
     return 0;
 }   
