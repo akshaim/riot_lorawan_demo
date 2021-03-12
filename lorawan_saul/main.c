@@ -27,7 +27,7 @@
 #include "xtimer.h"
 
 // #include "timex.h"
-// #include "fmt.h"
+#include "fmt.h"
 // #include "dht.h"
 // #include "dht_params.h"
 
@@ -35,10 +35,12 @@
 #include "saul_reg.h"
 #include <string.h>
 
+#include "cayenne_lpp.h"
+
+static cayenne_lpp_t lpp;
+
 #define DELAY           (10 * US_PER_SEC)
 #define MODULE_DHT11
-
-#define MSG           "{ '%s': [ { 'ts': %llu000, 'values':{'%s': %d, '%s': %d}}]}"
 
 #include "board.h"
 
@@ -55,14 +57,24 @@
 // static gnrc_netif_t _netif;
 static uint8_t interface = 3;
 
-int _send(void)
+static void _print_buffer(const uint8_t *buffer, size_t len, const char *msg)
+{
+    printf("%s: ", msg);
+    for (uint8_t i = 0; i < len; i++) {
+        printf("%02X", buffer[i]);
+    }
+}
+
+int _send(void) 
+// int _send(const char *temp_s)
 {
     gnrc_pktsnip_t *pkt;
-    char temp_s[]={"250"};
-
+    // char tmp[] = "\x10";
     uint8_t port = CONFIG_LORAMAC_DEFAULT_TX_PORT; /* Default: 2 */
 
-    pkt = gnrc_pktbuf_add(NULL, temp_s, strlen(temp_s), GNRC_NETTYPE_UNDEF);
+    pkt = gnrc_pktbuf_add(NULL, lpp.buffer,lpp.cursor, GNRC_NETTYPE_UNDEF);
+
+    cayenne_lpp_reset(&lpp);
 
     /* register for returned packet status */
     if (gnrc_neterr_reg(pkt) != 0) {
@@ -88,10 +100,12 @@ int _send(void)
     return 0;
 }
 
-static int _sense(char *temp)
+static int _sense(char *_arg1)
 {
     phydat_t res;
     saul_reg_t *dev = saul_reg;
+
+    int temp = 0;
 
     if (dev == NULL) {
             puts("No SAUL devices present");
@@ -101,7 +115,8 @@ static int _sense(char *temp)
     while (dev) {
         int dim = saul_reg_read(dev, &res);
         if (strcmp(saul_class_to_str(dev->driver->type), "ACT_SWITCH") &&
-            strcmp(saul_class_to_str(dev->driver->type), "SENSE_BTN"))
+            strcmp(saul_class_to_str(dev->driver->type), "SENSE_BTN") &&
+            strcmp(saul_class_to_str(dev->driver->type), "SENSE_HUM")) /*temporary filter */
             {   
                 printf("\nDev: %s\tType: %s\n", dev->name,
                         saul_class_to_str(dev->driver->type));
@@ -111,9 +126,16 @@ static int _sense(char *temp)
             }
                 dev = dev->next;
         }
-    size_t n = fmt_s16_dfp(temp_s, temp, -1);
-    temp_s[n] = '\0';
-}   
+        cayenne_lpp_add_temperature(&lpp, 3, temp/10);
+        size_t n = fmt_s16_dfp(_arg1, temp, -1);
+
+        _print_buffer(lpp.buffer, lpp.cursor, "Result");
+        _arg1[n] = '\0';
+        printf("Temp Value : %s\n",_arg1);
+        return 0;
+}
+
+/* join the network */
 static int _join(void)
 {
     uint8_t enable = 1;
@@ -127,17 +149,19 @@ static int _join(void)
 int main(void)
 {
     puts("LoRaWAN SAUL test application\n");
-    char temp[];
+    char arg1[5];
 
-    while(!_join()){} /* Wait for node to join NW */
+    while(!_join()){}
+
     puts("Device joined\n");
 
-    /* periodically read temp and humidity values */
+    /* periodically sense and send sensor values */
     while (1) {
-        _sense(temp)
+        _sense(arg1);
+        printf("Sensed Value : %s\n",arg1);
         _send();
          xtimer_usleep(DELAY);
     }
-
+    
     return 0;
 }

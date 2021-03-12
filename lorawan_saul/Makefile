@@ -8,6 +8,8 @@ USEMODULE += gnrc_pktdump
 USEMODULE += gnrc_neterr
 USEMODULE += dht
 USEMODULE += fmt
+USEMODULE += saul_default
+USEPKG += cayenne-lpp
 
 BOARD ?= b-l072z-lrwan1
 RIOTBASE ?= $(CURDIR)/../RIOT
