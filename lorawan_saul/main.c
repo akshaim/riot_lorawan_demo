@@ -26,10 +26,14 @@
 #include "thread.h"
 #include "xtimer.h"
 
-#include "timex.h"
-#include "fmt.h"
-#include "dht.h"
-#include "dht_params.h"
+// #include "timex.h"
+// #include "fmt.h"
+// #include "dht.h"
+// #include "dht_params.h"
+
+#include "phydat.h"
+#include "saul_reg.h"
+#include <string.h>
 
 #define DELAY           (10 * US_PER_SEC)
 #define MODULE_DHT11
@@ -51,9 +55,11 @@
 // static gnrc_netif_t _netif;
 static uint8_t interface = 3;
 
-int _send(const char *temp_s)
+int _send(void)
 {
     gnrc_pktsnip_t *pkt;
+    char temp_s[]={"250"};
+
     uint8_t port = CONFIG_LORAMAC_DEFAULT_TX_PORT; /* Default: 2 */
 
     pkt = gnrc_pktbuf_add(NULL, temp_s, strlen(temp_s), GNRC_NETTYPE_UNDEF);
@@ -82,21 +88,32 @@ int _send(const char *temp_s)
     return 0;
 }
 
-static int _measure(dht_t *dev, char *temp_s, char *hum_s)
+static int _sense(char *temp)
 {
-    int16_t temp, hum;
+    phydat_t res;
+    saul_reg_t *dev = saul_reg;
 
-    if (dht_read(dev, &temp, &hum) != DHT_OK) {
-            puts("Error reading values");
-            return -1;
+    if (dev == NULL) {
+            puts("No SAUL devices present");
+            return 1;
         }
-    
+
+    while (dev) {
+        int dim = saul_reg_read(dev, &res);
+        if (strcmp(saul_class_to_str(dev->driver->type), "ACT_SWITCH") &&
+            strcmp(saul_class_to_str(dev->driver->type), "SENSE_BTN"))
+            {   
+                printf("\nDev: %s\tType: %s\n", dev->name,
+                        saul_class_to_str(dev->driver->type));
+                phydat_dump(&res, dim); 
+                printf("Dataa : %d, scale %d\n", res.val[0], res.scale);
+                temp = res.val[0];
+            }
+                dev = dev->next;
+        }
     size_t n = fmt_s16_dfp(temp_s, temp, -1);
     temp_s[n] = '\0';
-    n = fmt_s16_dfp(hum_s, hum, -1);
-    hum_s[n] = '\0';
-    return 0;
-}
+}   
 static int _join(void)
 {
     uint8_t enable = 1;
@@ -110,32 +127,15 @@ static int _join(void)
 int main(void)
 {
     puts("LoRaWAN SAUL test application\n");
+    char temp[];
 
     while(!_join()){} /* Wait for node to join NW */
     puts("Device joined\n");
 
-#ifdef MODULE_DHT11
-    dht_t dev;
-    char temp_s[10];
-    char hum_s[10];
-
-    /* initialize first configured sensor */
-    printf("Initializing DHT sensor...\t");
-    if (dht_init(&dev, &dht_params[0]) == DHT_OK) {
-        puts("[OK]\n");
-    }
-    else {
-        puts("[Failed]");
-        return 1;
-    }
-#endif
-
     /* periodically read temp and humidity values */
     while (1) {
-        _measure(&dev,temp_s,hum_s);
-        printf("DHT values - temp: %s°C - relative humidity: %s%%\n",
-            temp_s, hum_s);
-        _send(temp_s);
+        _sense(temp)
+        _send();
          xtimer_usleep(DELAY);
     }
 
