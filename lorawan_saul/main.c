@@ -101,6 +101,12 @@ static int _sense(void)
                 phydat_dump(&res, dim);
                 cayenne_lpp_add_relative_humidity(&lpp, 4, res.val[0]);
                 break;
+            case SAUL_SENSE_LIGHT :
+                phydat_dump(&res, dim);
+                cayenne_lpp_add_luminosity(&lpp, 4, res.val[0]);
+                break;
+
+            /* More sensors can be added as per requirement */
             }
 
             dev = dev->next;

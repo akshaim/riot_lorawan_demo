@@ -7,6 +7,7 @@ USEMODULE += gnrc_lorawan
 USEMODULE += gnrc_pktdump
 USEMODULE += gnrc_neterr
 USEMODULE += dht
+USEMODULE += tsl4531x
 USEMODULE += fmt
 USEMODULE += saul_default
 USEPKG += cayenne-lpp
