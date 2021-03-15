@@ -7,11 +7,11 @@
  */
 
 /**
- * @ingroup     boards_nucleo-f103rb
+ * @ingroup     boards_demo_multi
  * @{
  *
  * @file
- * @brief       Peripheral MCU configuration for the nucleo-f103rb board
+ * @brief       Peripheral MCU configuration for the Demo Multi
  *
  * @author      Víctor Ariño <victor.arino@triagnosys.com>
  */

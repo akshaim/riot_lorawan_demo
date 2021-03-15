@@ -6,9 +6,9 @@
 #
 
 config BOARD
-    default "nucleo-f103rb" if BOARD_NUCLEO_F103RB
+    default "demo_multi" if BOARD_DEMO_MULTI
 
-config BOARD_NUCLEO_F103RB
+config BOARD_DEMO_MULTI
     bool
     default y
     select BOARD_COMMON_NUCLEO64
