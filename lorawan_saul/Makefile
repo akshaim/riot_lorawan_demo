@@ -9,7 +9,8 @@ USEMODULE += fmt
 USEMODULE += saul_default
 USEPKG += cayenne-lpp
 
-BOARD ?= b-l072z-lrwan1
+BOARD ?= demo_nucleo
+EXTERNAL_BOARD_DIRS ?= $(CURDIR)/boards
 
 # Uncomment as needed
 # USEMODULE += dht
