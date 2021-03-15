@@ -14,10 +14,8 @@ Usage
     Configure LoRaWAN MAC
 2. Make suitable entries in `Makefile` locates in `lorawan_saul` application to
     add sensors, specify platform etc.
+    Alternatively, `USEMODULE` and `DRIVER` can be passed as environment
+    variables when calling `make`
 3. Wire the sensor(s).
-4. If necessary,modify the Driver specific configurations using `make menuconfig`.
-5. Run `make all flash term` to flash the firmware.
-
-
-
-
+4. Run `make all flash` to compile and flash the application.
+5. Run `make term` to access the terminal of the board.
