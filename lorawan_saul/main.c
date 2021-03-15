@@ -46,9 +46,6 @@ int _send(gnrc_netif_t *netif)
         return 1;
     }
 
-    /* Reset Cayenne lpp buffer and reset the cursor */
-    cayenne_lpp_reset(&lpp);
-
     /* Register for returned packet status */
     if (gnrc_neterr_reg(pkt) != 0) {
         LOG_INFO("Can not register for error reporting\n");
@@ -75,40 +72,34 @@ int _send(gnrc_netif_t *netif)
     return 0;
 }
 
-static int _sense(void)
+static void _sense(void)
 {
     phydat_t res;
+    int i = 0;
+    saul_reg_t *dev;
 
-    saul_reg_t *dev = saul_reg;
-    if (dev == NULL) {
-        LOG_INFO("No SAUL devices present. Exit... \n");
-        assert(false);
-        return 1;
-    }
+    /* Reset Cayenne lpp buffer and reset the cursor */
+    cayenne_lpp_reset(&lpp);
 
-    /* TODO: Use saul_reg_find_xxx functions */
-    while (dev) {
+    while ((dev = saul_reg_find_nth(i))) {
         int dim = saul_reg_read(dev, &res);
+        phydat_dump(&res, dim);
         switch (dev->driver->type) {
             case SAUL_SENSE_TEMP :
-                phydat_dump(&res, dim);
                 cayenne_lpp_add_temperature(&lpp, 3, res.val[0]/10);
                 break;
             case SAUL_SENSE_HUM :
-                phydat_dump(&res, dim);
                 cayenne_lpp_add_relative_humidity(&lpp, 4, res.val[0]);
                 break;
             case SAUL_SENSE_LIGHT :
-                phydat_dump(&res, dim);
                 cayenne_lpp_add_luminosity(&lpp, 4, res.val[0]);
                 break;
-
+            default:
+                break;
             /* More sensors can be added as per requirement */
-            }
-
-            dev = dev->next;
         }
-        return 0;
+        i++;
+    }
 }
 
 /* Join the network */
