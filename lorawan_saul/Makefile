@@ -5,13 +5,15 @@ USEMODULE += gnrc_netdev_default
 USEMODULE += auto_init_gnrc_netif
 USEMODULE += gnrc_lorawan
 USEMODULE += gnrc_neterr
-USEMODULE += dht
-USEMODULE += tsl4531x
 USEMODULE += fmt
 USEMODULE += saul_default
 USEPKG += cayenne-lpp
 
 BOARD ?= b-l072z-lrwan1
+
+# Uncomment as needed
+# USEMODULE += dht
+# USEMODULE += tsl4531x
 
 RIOTBASE ?= $(CURDIR)/../RIOT
 

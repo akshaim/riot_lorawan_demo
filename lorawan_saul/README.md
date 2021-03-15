@@ -5,6 +5,10 @@ This application demonstrates a LoRaWAN application along with SAUL. The
 application makes us of RIOT's own native LoRaWAN stack called GNRC LoRaWAN and
 a generic actuator/sensor abstraction layer in RIOT called SAUL.
 
+For this demo boards will use a mixture of `dht` and `tsl4531x` sensors.
+For each board this has to be configured beforehand (either uncommenting the
+Makefile or passing e.g `USEMODULE=dht` as environment variable).
+
 Usage
 =====
 
