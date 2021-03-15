@@ -7,11 +7,11 @@
  */
 
 /**
- * @ingroup     boards_b-l072z-lrwan1
+ * @ingroup     boards_demo_bl072z
  * @{
  *
  * @file
- * @brief       Board specific definitions for the ST B-L072Z-LRWAN1 board
+ * @brief       Board specific definitions for the BL072z based demo board
  *
  * @author      Alexandre Abadie <alexandre.abadie@inria.fr>
  */

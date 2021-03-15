@@ -7,7 +7,7 @@
  */
 
 /**
- * @ingroup   boards_b-l072z-lrwan1
+ * @ingroup   boards_demo_bl072z
  * @{
  *
  * @file

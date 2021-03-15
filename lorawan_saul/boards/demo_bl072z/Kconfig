@@ -6,9 +6,9 @@
 #
 
 config BOARD
-    default "b-l072z-lrwan1" if BOARD_B_L072Z_LRWAN1
+    default "demo_bl072z" if BOARD_DEMO_BL072Z
 
-config BOARD_B_L072Z_LRWAN1
+config BOARD_DEMO_BL072Z
     bool
     default y
     select CPU_MODEL_STM32L072CZ
