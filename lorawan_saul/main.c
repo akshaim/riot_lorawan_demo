@@ -33,6 +33,12 @@
 /* Delay between transmission in seconds */
 #define SEND_DELAY           (30U)
 
+/* Channels are used to distinguish between more than one model/make/type
+ of sensors */
+#define CAYENNE_LPP_CHANNEL_1 1
+#define CAYENNE_LPP_CHANNEL_2 2
+#define CAYENNE_LPP_CHANNEL_3 3
+
 static cayenne_lpp_t lpp;
 
 int _send(gnrc_netif_t *netif)
@@ -96,13 +102,13 @@ static void _sense(void)
          */
         switch (dev->driver->type) {
             case SAUL_SENSE_TEMP :
-                cayenne_lpp_add_temperature(&lpp, 3, res.val[0]/10);
+                cayenne_lpp_add_temperature(&lpp, CAYENNE_LPP_CHANNEL_1, res.val[0]/10);
                 break;
             case SAUL_SENSE_HUM :
-                cayenne_lpp_add_relative_humidity(&lpp, 4, res.val[0]);
+                cayenne_lpp_add_relative_humidity(&lpp, CAYENNE_LPP_CHANNEL_2, res.val[0]);
                 break;
             case SAUL_SENSE_LIGHT :
-                cayenne_lpp_add_luminosity(&lpp, 4, res.val[0]);
+                cayenne_lpp_add_luminosity(&lpp, CAYENNE_LPP_CHANNEL_3, res.val[0]);
                 break;
             default:
                 /* More sensors can be added as per requirement */
