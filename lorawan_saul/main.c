@@ -43,7 +43,7 @@ int _send(gnrc_netif_t *netif)
     /* Try to allocate a packet using GNRC Pktbuf */
     if (!(pkt = gnrc_pktbuf_add(NULL, lpp.buffer, lpp.cursor,
                                 GNRC_NETTYPE_UNDEF))) {
-        LOG_INFO("No space in packet buffer\n");
+        LOG_ERROR("No space in packet buffer\n");
         return 1;
     }
 
@@ -51,7 +51,7 @@ int _send(gnrc_netif_t *netif)
      * This is not required if the user doesn't need error reporting
      * (available with module `gnrc_neterr`) */
     if (gnrc_neterr_reg(pkt) != 0) {
-        LOG_INFO("Can not register for error reporting\n");
+        LOG_ERROR("Can not register for error reporting\n");
         return 0;
     }
 
@@ -65,7 +65,7 @@ int _send(gnrc_netif_t *netif)
 
     if ((msg.type != GNRC_NETERR_MSG_TYPE) ||
         (msg.content.value != GNRC_NETERR_SUCCESS)) {
-        LOG_INFO("Error sending packet: (status: %d\n)",
+        LOG_ERROR("Error sending packet: (status: %d\n)",
                   (int) msg.content.value);
     }
     else {
@@ -137,7 +137,7 @@ int main(void)
 
     /* Try to get a LoRaWAN interface */
     if((netif = gnrc_netif_get_by_type(NETDEV_TYPE_LORA, NETDEV_INDEX_ANY))) {
-        LOG_INFO("Couldn't find a LoRaWAN interface");
+        LOG_ERROR("Couldn't find a LoRaWAN interface");
         return 1;
     }
 
