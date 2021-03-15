@@ -155,7 +155,7 @@ int main(void)
     LOG_INFO("LoRaWAN SAUL test application\n");
 
     /* Try to get a LoRaWAN interface */
-    if((netif = _get_lorawan_netif())) {
+    if(!(netif = _get_lorawan_netif())) {
         LOG_ERROR("Couldn't find a LoRaWAN interface");
         return 1;
     }
