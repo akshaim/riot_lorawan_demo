@@ -8,18 +8,13 @@
  */
 
 /**
- * @defgroup    lorawan_saul_application
- * @brief       LoRaWAN SAUL application
- * @{
- *
- * @file
- * @brief       GNRC LoRaWAN example application for RIOT
+ * @brief       GNRC LoRaWAN - SAUL example application for RIOT
  *
  * @author      Akshai M    <akshai.m@fu-berlin.de>
  *              José Alamos <jose.alamos@haw-hamburg.de>
  *
- * @}
  */
+
 /* SAUL registry interfaces */
 #include "saul_reg.h"
 
@@ -36,7 +31,7 @@
 #define JOIN_DELAY      (10 * US_PER_SEC)
 
 /* Sleep time in seconds */
-#define DELAY           (30 * US_PER_SEC)
+#define SEND_DELAY           (30 * US_PER_SEC)
 
 static cayenne_lpp_t lpp;
 
@@ -166,7 +161,7 @@ int main(void)
     while (1) {
         _sense();
         _send(&interface_d);
-        xtimer_usleep(DELAY);
+        xtimer_usleep(SEND_DELAY);
     }
 
     return 0;
