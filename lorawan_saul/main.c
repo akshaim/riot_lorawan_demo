@@ -27,11 +27,11 @@
 /* System logging header, offers "LOG_*" functions */
 #include "log.h"
 
-/* Unit system wait time to complete join procedure in microseconds */
-#define JOIN_DELAY      (10 * US_PER_SEC)
+/* Unit system wait time to complete join procedure in seconds */
+#define JOIN_DELAY      (10U)
 
-/* Delay between transmission in microseconds */
-#define SEND_DELAY           (30 * US_PER_SEC)
+/* Delay between transmission in seconds */
+#define SEND_DELAY           (30U)
 
 static cayenne_lpp_t lpp;
 
@@ -124,7 +124,7 @@ static netopt_enable_t _join(gnrc_netif_t *netif)
     gnrc_netapi_set(netif->pid, NETOPT_LINK, 0, &en, sizeof(en));
 
     /* Wait for some seconds and ask the interface if it joined properly */
-    xtimer_usleep(JOIN_DELAY);
+    xtimer_sleep(JOIN_DELAY);
     gnrc_netapi_get(netif->pid, NETOPT_LINK, 0, &en, sizeof(en));
     return en;
 }
@@ -155,7 +155,7 @@ int main(void)
     while (1) {
         _sense();
         _send(netif);
-        xtimer_usleep(SEND_DELAY);
+        xtimer_sleep(SEND_DELAY);
     }
 
     return 0;
