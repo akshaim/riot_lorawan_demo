@@ -4,7 +4,6 @@ APPLICATION = gnrc_lorawan_saul
 USEMODULE += gnrc_netdev_default
 USEMODULE += auto_init_gnrc_netif
 USEMODULE += gnrc_lorawan
-USEMODULE += gnrc_pktdump
 USEMODULE += gnrc_neterr
 USEMODULE += dht
 USEMODULE += tsl4531x
@@ -13,7 +12,6 @@ USEMODULE += saul_default
 USEPKG += cayenne-lpp
 
 BOARD ?= b-l072z-lrwan1
-# BOARD ?= nucleo-f411re
 
 RIOTBASE ?= $(CURDIR)/../RIOT
 
@@ -22,7 +20,6 @@ DEVELHELP ?= 1
 
 # use SX1276 by default
 DRIVER ?= sx1276
-# DRIVER ?= sx1272
 
 USEMODULE += $(DRIVER)
 
