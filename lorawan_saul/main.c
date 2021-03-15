@@ -35,7 +35,7 @@
 
 static cayenne_lpp_t lpp;
 
-int _send(const kernel_pid_t *interface)
+int _send(gnrc_netif_t *netif)
 {
     gnrc_pktsnip_t *pkt;
     msg_t msg;
@@ -55,8 +55,10 @@ int _send(const kernel_pid_t *interface)
         return 0;
     }
 
-    /* Forward the packet to LoRaWAN MAC for Uplink*/
-    gnrc_netif_send(gnrc_netif_get_by_pid(*interface), pkt);
+    /* Send LoRaWAN packet
+     * This function is a wrapper of gnrc_netapi_send
+     */
+    gnrc_netif_send(netif, pkt);
 
     /* Wait for packet status and check */
     msg_receive(&msg);
@@ -110,57 +112,40 @@ static int _sense(void)
 }
 
 /* Join the network */
-static netopt_enable_t _join(const kernel_pid_t *interface)
+static netopt_enable_t _join(gnrc_netif_t *netif)
 {
     netopt_enable_t en = NETOPT_ENABLE;
-    gnrc_netapi_set(*interface, NETOPT_LINK, 0, &en, sizeof(en));
+    gnrc_netapi_set(netif->pid, NETOPT_LINK, 0, &en, sizeof(en));
     xtimer_usleep(JOIN_DELAY);
-    gnrc_netapi_get(*interface, NETOPT_LINK, 0, &en, sizeof(en));
+    gnrc_netapi_get(netif->pid, NETOPT_LINK, 0, &en, sizeof(en));
     return en;
-}
-
-/* Get interface ID */
-static int _get_interface(kernel_pid_t *interface)
-{
-    gnrc_netif_t *netif = NULL;
-
-    /* Iterate over all network interfaces */
-    while ((netif = gnrc_netif_iter(netif))) {
-        int _type;
-        gnrc_netapi_get(netif->pid, NETOPT_DEVICE_TYPE, 0, &_type,
-                        sizeof(_type));
-        if (_type == NETDEV_TYPE_LORA) {
-            *interface = netif->pid;
-            return 0;
-        }
-    }
-    return 1;
 }
 
 int main(void)
 {
     LOG_INFO("LoRaWAN SAUL test application\n");
 
-    kernel_pid_t interface_d;
-    if(_get_interface(&interface_d)) {
+    gnrc_netif_t *netif;
+    /* Try to get a LoRaWAN interface */
+    if((netif = gnrc_netif_get_by_type(NETDEV_TYPE_LORA, NETDEV_INDEX_ANY))) {
         LOG_INFO("Couldn't find a LoRaWAN interface");
         return 1;
     }
 
     /* Wait for node to join NW */
-    while(_join(&interface_d) != NETOPT_ENABLE) {}
+    while(_join(netif) != NETOPT_ENABLE) {}
     LOG_INFO("Device joined\n");
 
     /* Configure GNRC LoRaWAN using GNRC NetAPI */
     uint8_t port = CONFIG_LORAMAC_DEFAULT_TX_PORT; /* Default: 2 */
 
-    gnrc_netapi_set(interface_d, NETOPT_LORAWAN_TX_PORT, 0, &port,
+    gnrc_netapi_set(netif->pid, NETOPT_LORAWAN_TX_PORT, 0, &port,
                     sizeof(port));
 
     /* Periodically poll sensor value(s) and transmit */
     while (1) {
         _sense();
-        _send(&interface_d);
+        _send(netif);
         xtimer_usleep(SEND_DELAY);
     }
 
