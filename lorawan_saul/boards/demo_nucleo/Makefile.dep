@@ -1,1 +1,9 @@
+ifneq (,$(filter netdev_default,$(USEMODULE)))
+  USEMODULE += sx1272
+endif
+
+ifneq (,$(filter saul_default,$(USEMODULE)))
+  USEMODULE += tsl4531x
+endif
+
 include $(RIOTBOARD)/common/nucleo/Makefile.dep

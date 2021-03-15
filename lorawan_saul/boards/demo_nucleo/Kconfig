@@ -6,7 +6,7 @@
 #
 
 config BOARD
-    default "nucleo-f411re" if BOARD_NUCLEO_F411RE
+    default "demo_nucleo" if BOARD_DEMO_NUCLEO
 
 config BOARD_NUCLEO_F411RE
     bool

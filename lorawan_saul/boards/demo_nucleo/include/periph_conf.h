@@ -7,11 +7,11 @@
  */
 
 /**
- * @ingroup     boards_nucleo-f411re
+ * @ingroup     boards_demo_nucleo
  * @{
  *
  * @file
- * @name        Peripheral MCU configuration for the nucleo-f411re board
+ * @name        Peripheral MCU configuration for the Demo Nucleo board
  *
  * @author      Alexandre Abadie <alexandre.abadie@inria.fr>
  */
