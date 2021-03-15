@@ -11,7 +11,7 @@
  * @brief       GNRC LoRaWAN - SAUL example application for RIOT
  *
  * @author      Akshai M    <akshai.m@fu-berlin.de>
- *              José Alamos <jose.alamos@haw-hamburg.de>
+ * @author      José Alamos <jose.alamos@haw-hamburg.de>
  *
  */
 
