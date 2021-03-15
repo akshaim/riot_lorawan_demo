@@ -129,6 +129,20 @@ static netopt_enable_t _join(gnrc_netif_t *netif)
     return en;
 }
 
+gnrc_netif_t *_get_lorawan_netif(void)
+{
+    for (gnrc_netif_t *netif = gnrc_netif_iter(NULL); netif;
+            netif = gnrc_netif_iter(netif)) {
+        uint16_t type;
+        gnrc_netapi_get(netif->pid, NETOPT_DEVICE_TYPE, 0, &type, sizeof(type));
+        if (type == NETDEV_TYPE_LORA) {
+            return netif;
+        }
+    }
+
+    return NULL;
+}
+
 int main(void)
 {
     gnrc_netif_t *netif;
@@ -136,7 +150,7 @@ int main(void)
     LOG_INFO("LoRaWAN SAUL test application\n");
 
     /* Try to get a LoRaWAN interface */
-    if((netif = gnrc_netif_get_by_type(NETDEV_TYPE_LORA, NETDEV_INDEX_ANY))) {
+    if((netif = _get_lorawan_netif())) {
         LOG_ERROR("Couldn't find a LoRaWAN interface");
         return 1;
     }
