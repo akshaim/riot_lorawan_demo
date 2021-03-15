@@ -27,10 +27,10 @@
 /* System logging header, offers "LOG_*" functions */
 #include "log.h"
 
-/* Unit system wait time to complete join procedure */
+/* Unit system wait time to complete join procedure in microseconds */
 #define JOIN_DELAY      (10 * US_PER_SEC)
 
-/* Sleep time in seconds */
+/* Delay between transmission in microseconds */
 #define SEND_DELAY           (30 * US_PER_SEC)
 
 static cayenne_lpp_t lpp;
@@ -40,13 +40,16 @@ int _send(gnrc_netif_t *netif)
     gnrc_pktsnip_t *pkt;
     msg_t msg;
 
+    /* Try to allocate a packet using GNRC Pktbuf */
     if (!(pkt = gnrc_pktbuf_add(NULL, lpp.buffer, lpp.cursor,
                                 GNRC_NETTYPE_UNDEF))) {
         LOG_INFO("No space in packet buffer\n");
         return 1;
     }
 
-    /* Register for returned packet status */
+    /* Register for returned packet status.
+     * This is not required if the user doesn't need error reporting
+     * (available with module `gnrc_neterr`) */
     if (gnrc_neterr_reg(pkt) != 0) {
         LOG_INFO("Can not register for error reporting\n");
         return 0;
@@ -57,7 +60,7 @@ int _send(gnrc_netif_t *netif)
      */
     gnrc_netif_send(netif, pkt);
 
-    /* Wait for packet status and check */
+    /* Wait for transmission status (when using `gnrc_neterr`) and check */
     msg_receive(&msg);
 
     if ((msg.type != GNRC_NETERR_MSG_TYPE) ||
@@ -75,15 +78,23 @@ int _send(gnrc_netif_t *netif)
 static void _sense(void)
 {
     phydat_t res;
-    int i = 0;
+    int pos = 0;
     saul_reg_t *dev;
 
     /* Reset Cayenne lpp buffer and reset the cursor */
     cayenne_lpp_reset(&lpp);
 
-    while ((dev = saul_reg_find_nth(i))) {
+    /* Iterate through all SAUL instances.
+     * A SAUL instance has only one type and PHYDAT representation.
+     * A physical device may have more than one SAUL instance */
+    while ((dev = saul_reg_find_nth(pos))) {
+        /* Read value from SAUL device and dump the PHYDAT */
         int dim = saul_reg_read(dev, &res);
         phydat_dump(&res, dim);
+
+        /* Populate the Cayenne LPP buffer with data from a temperature,
+         * humidity and light sensors.
+         */
         switch (dev->driver->type) {
             case SAUL_SENSE_TEMP :
                 cayenne_lpp_add_temperature(&lpp, 3, res.val[0]/10);
@@ -98,15 +109,21 @@ static void _sense(void)
                 break;
             /* More sensors can be added as per requirement */
         }
-        i++;
+
+        pos++;
     }
 }
 
 /* Join the network */
 static netopt_enable_t _join(gnrc_netif_t *netif)
 {
+    /* Set netif to UP.
+     * Because OTAA is configured by default, this will trigger a Join Request
+     */
     netopt_enable_t en = NETOPT_ENABLE;
     gnrc_netapi_set(netif->pid, NETOPT_LINK, 0, &en, sizeof(en));
+
+    /* Wait for some seconds and ask the interface if it joined properly */
     xtimer_usleep(JOIN_DELAY);
     gnrc_netapi_get(netif->pid, NETOPT_LINK, 0, &en, sizeof(en));
     return en;
@@ -114,9 +131,10 @@ static netopt_enable_t _join(gnrc_netif_t *netif)
 
 int main(void)
 {
+    gnrc_netif_t *netif;
+
     LOG_INFO("LoRaWAN SAUL test application\n");
 
-    gnrc_netif_t *netif;
     /* Try to get a LoRaWAN interface */
     if((netif = gnrc_netif_get_by_type(NETDEV_TYPE_LORA, NETDEV_INDEX_ANY))) {
         LOG_INFO("Couldn't find a LoRaWAN interface");
