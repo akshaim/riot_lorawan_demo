@@ -87,10 +87,9 @@ static void _sense(void)
     /* Iterate through all SAUL instances.
      * A SAUL instance has only one type and PHYDAT representation.
      * A physical device may have more than one SAUL instance */
-    while ((dev = saul_reg_find_nth(pos))) {
+    while ((dev = saul_reg_find_nth(pos++))) {
         /* Read value from SAUL device and dump the PHYDAT */
         int dim = saul_reg_read(dev, &res);
-        phydat_dump(&res, dim);
 
         /* Populate the Cayenne LPP buffer with data from a temperature,
          * humidity and light sensors.
@@ -106,11 +105,11 @@ static void _sense(void)
                 cayenne_lpp_add_luminosity(&lpp, 4, res.val[0]);
                 break;
             default:
-                break;
-            /* More sensors can be added as per requirement */
+                /* More sensors can be added as per requirement */
+                continue;
         }
 
-        pos++;
+        phydat_dump(&res, dim);
     }
 }
 
