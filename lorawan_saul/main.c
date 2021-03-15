@@ -131,10 +131,15 @@ static netopt_enable_t _join(gnrc_netif_t *netif)
 
 gnrc_netif_t *_get_lorawan_netif(void)
 {
+    /* Iterate all network interface and try to find the LoRaWAN interface */
     for (gnrc_netif_t *netif = gnrc_netif_iter(NULL); netif;
             netif = gnrc_netif_iter(netif)) {
+
+        /* Use GNRC Netapi to get the interface type */
         uint16_t type;
         gnrc_netapi_get(netif->pid, NETOPT_DEVICE_TYPE, 0, &type, sizeof(type));
+
+        /* If interface type is LORA, we found it */
         if (type == NETDEV_TYPE_LORA) {
             return netif;
         }
