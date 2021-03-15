@@ -12,19 +12,10 @@ USEPKG += cayenne-lpp
 BOARD ?= demo_nucleo
 EXTERNAL_BOARD_DIRS ?= $(CURDIR)/boards
 
-# Uncomment as needed
-# USEMODULE += dht
-# USEMODULE += tsl4531x
-
 RIOTBASE ?= $(CURDIR)/../RIOT
 
 # Turn on developer helpers
 DEVELHELP ?= 1
-
-# use SX1276 by default
-DRIVER ?= sx1276
-
-USEMODULE += $(DRIVER)
 
 include $(RIOTBASE)/Makefile.include
 
